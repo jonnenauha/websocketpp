@@ -28,6 +28,7 @@
 #ifndef HTTP_PARSER_HPP
 #define HTTP_PARSER_HPP
 
+#include <stdint.h>
 #include <iostream>
 #include <map>
 #include <string>
@@ -262,7 +263,24 @@ public:
         std::stringstream foo;
         foo << value.size();
         replace_header("Content-Length", foo.str());
+
         m_body = value;
+    }
+    
+    void set_body(const void *payload, uint64_t length) {
+        if (length == 0) {
+            remove_header("Content-Length");
+            m_body = "";
+            return;
+        }
+
+        std::stringstream foo;
+        foo << length;
+        replace_header("Content-Length", foo.str());
+        
+        m_body.reserve(length);
+        const char* pl = static_cast<const char*>(payload);
+        m_body.assign(pl, pl + length);
     }
     
     status_code::value get_status_code() const {

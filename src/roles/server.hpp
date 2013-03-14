@@ -118,6 +118,15 @@ public:
         // Valid if get_version() returns -1 (ie this is an http connection)
         void set_body(const std::string& value);
         
+        // Valid if get_version() returns -1 (ie this is an http connection)
+        void set_body(const void *payload, uint64_t length);
+        
+        // Valid if get_version() returns -1 (ie this is an http connection)
+        void set_status(http::status_code::value code);
+
+        // Valid if get_version() returns -1 (ie this is an http connection)
+        void set_status(http::status_code::value code, const std::string& msg);
+        
         int32_t rand() {
             return 0;
         }
@@ -484,8 +493,7 @@ void server<endpoint>::connection<connection_type>::select_extension(
 // Valid if get_version() returns -1 (ie this is an http connection)
 template <class endpoint>
 template <class connection_type>
-void server<endpoint>::connection<connection_type>::set_body(
-                                                    const std::string& value)
+void server<endpoint>::connection<connection_type>::set_body(const std::string& value)
 {
     // TODO: should this be locked?
     
@@ -495,6 +503,55 @@ void server<endpoint>::connection<connection_type>::set_body(
     }
     
     m_response.set_body(value);
+}
+
+// Valid if get_version() returns -1 (ie this is an http connection)
+template <class endpoint>
+template <class connection_type>
+void server<endpoint>::connection<connection_type>::set_body(const void *payload, 
+                                                             uint64_t length)
+{
+    // TODO: should this be locked?
+
+    if (m_connection.m_version != -1) {
+        // TODO: throw exception
+        throw std::invalid_argument("set_body called from invalid state");
+    }
+
+    m_response.set_body(payload, length);
+}
+
+
+
+// Valid if get_version() returns -1 (ie this is an http connection)
+template <class endpoint>
+template <class connection_type>
+void server<endpoint>::connection<connection_type>::set_status(http::status_code::value code)
+{
+    // TODO: should this be locked?
+
+    if (m_connection.m_version != -1) {
+        // TODO: throw exception
+        throw std::invalid_argument("set_status called from invalid state");
+    }
+
+    m_response.set_status(code);
+}
+
+// Valid if get_version() returns -1 (ie this is an http connection)
+template <class endpoint>
+template <class connection_type>
+void server<endpoint>::connection<connection_type>::set_status(http::status_code::value code
+                                                               const std::string& msg)
+{
+    // TODO: should this be locked?
+
+    if (m_connection.m_version != -1) {
+        // TODO: throw exception
+        throw std::invalid_argument("set_status called from invalid state");
+    }
+
+    m_response.set_status(code, msg);
 }
     
 /// initiates an async read for an HTTP header
@@ -679,10 +736,10 @@ void server<endpoint>::connection<connection_type>::handle_read_request(
                                     m_request.uri()));
             }
             
-            // continue as HTTP?
-            m_endpoint.get_handler()->http(m_connection.shared_from_this());
-            
+            // Continue as HTTP: Set 200 OK initially. Http handler can change it if needed.
             m_response.set_status(http::status_code::OK);
+            
+            m_endpoint.get_handler()->http(m_connection.shared_from_this());
         }
     } catch (const http::exception& e) {
         m_endpoint.m_elog->at(log::elevel::RERROR) << e.what() << log::endl;

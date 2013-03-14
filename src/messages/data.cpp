@@ -169,6 +169,7 @@ void data::append_payload(const std::string& payload) {
     m_payload.reserve(m_payload.size()+payload.size());
     m_payload.append(payload);
 }
+
 void data::mask() {
     if (m_masked && m_payload.size() > 0) {
         // By default WebSocket++ performs block masking/unmasking in a mannor that makes
