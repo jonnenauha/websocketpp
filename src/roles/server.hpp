@@ -849,7 +849,8 @@ void server<endpoint>::connection<connection_type>::write_response() {
     
     shared_const_buffer buffer(raw);
     
-    m_endpoint.m_alog->at(log::alevel::DEBUG_HANDSHAKE) << raw << log::endl;
+    // This might be binary data, do not log to console. It will crash the app at least on windows.
+    // m_endpoint.m_alog->at(log::alevel::DEBUG_HANDSHAKE) << raw << log::endl;
     
     boost::asio::async_write(
         m_connection.get_socket(),
