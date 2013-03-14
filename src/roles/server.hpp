@@ -541,7 +541,7 @@ void server<endpoint>::connection<connection_type>::set_status(http::status_code
 // Valid if get_version() returns -1 (ie this is an http connection)
 template <class endpoint>
 template <class connection_type>
-void server<endpoint>::connection<connection_type>::set_status(http::status_code::value code
+void server<endpoint>::connection<connection_type>::set_status(http::status_code::value code,
                                                                const std::string& msg)
 {
     // TODO: should this be locked?
